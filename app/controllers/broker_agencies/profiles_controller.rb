@@ -194,6 +194,7 @@ class BrokerAgencies::ProfilesController < ApplicationController
       old_default_ga_id = @broker_agency_profile.default_general_agency_profile.id.to_s rescue nil
       if params[:type] == 'clear'
         @broker_agency_profile.default_general_agency_profile = nil
+        @broker_agency_profile.employer_clients.each(&:fire_general_agency!)
       elsif @general_agency_profile.present?
         @broker_agency_profile.default_general_agency_profile = @general_agency_profile
         @broker_agency_profile.employer_clients.each do |employer_profile|

@@ -452,6 +452,21 @@ RSpec.describe BrokerAgencies::ProfilesController do
       expect(assigns(:broker_agency_profile).default_general_agency_profile).to eq nil
     end
 
+    it "should clear default general_agency_profile generate fire_general_agency notice" do
+      ActiveJob::Base.queue_adapter = :test
+      ActiveJob::Base.queue_adapter.enqueued_jobs = []
+      broker_agency_profile.default_general_agency_profile = general_agency_profile
+      broker_agency_profile.save
+      expect(broker_agency_profile.default_general_agency_profile).to eq general_agency_profile
+
+      sign_in user
+      xhr :post, :set_default_ga, id: broker_agency_profile.id, type: 'clear', format: :js
+      queued_job = ActiveJob::Base.queue_adapter.enqueued_jobs
+      expect(assigns(:broker_agency_profile).default_general_agency_profile).to eq nil
+      expect(queued_job.any? {|h| (h[:args].include?('general_agency_terminated') && h[:job] == ShopNoticesNotifierJob)}).to eq true
+    end
+
+
     it "should call update_ga_for_employers" do
       sign_in user
       expect(controller).to receive(:notify)

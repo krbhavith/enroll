@@ -149,6 +149,18 @@ RSpec.describe Employers::BrokerAgencyController do
         expect(queued_job.any? {|h| (h[:args].include?("#{general_agency_profile.id.to_s}") && h[:job] == ShopNoticesNotifierJob)}).to eq true
         expect(queued_job.any? {|h| (h[:args].third["employer_profile_id"]) == employer_profile.id.to_s if h[:args].include?('general_agency_hired_notice')}).to eq true
       end
+
+      it "should call broker_hired and broker_agency_hired_notice trigger " do
+        ActiveJob::Base.queue_adapter = :test
+        ActiveJob::Base.queue_adapter.enqueued_jobs = []
+        allow(@hbx_staff_role).to receive(:permission).and_return(double('Permission', modify_employer: true))
+        sign_in(@user)
+        post :create, employer_profile_id: employer_profile.id, broker_role_id: broker_role.id, broker_agency_id: broker_agency_profile.id
+        queued_job = ActiveJob::Base.queue_adapter.enqueued_jobs
+        expect(queued_job.any? {|h| (h[:args].include?('broker_hired') && h[:job] == ShopNoticesNotifierJob)}).to eq true
+        expect(queued_job.any? {|h| (h[:args].include?('broker_agency_hired') && h[:job] == ShopNoticesNotifierJob)}).to eq true
+        expect(queued_job.any? {|h| (h[:args].include?('broker_hired_confirmation_notice') && h[:job] == ShopNoticesNotifierJob)}).to eq true
+      end
     end
   end
 
