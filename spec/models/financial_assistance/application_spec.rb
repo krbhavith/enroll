@@ -122,6 +122,20 @@ RSpec.describe FinancialAssistance::Application, type: :model do
       end
     end
 
+    context "is_reviewable?" do
+      let(:faa) { double(:application) }
+      it 'should return true if in valid reviewable states' do
+        allow(application).to receive(:aasm_state).and_return('submitted')
+        expect(application.is_reviewable?).to eq true
+      end
+
+      it 'should return false if in valid reviewable states' do
+        allow(application).to receive(:aasm_state).and_return('draft')
+        expect(application.is_reviewable?).to eq false
+      end
+
+    end
+
     context "check the validity of an application" do
       let!(:valid_application) { FactoryGirl.create(:application, family: family, hbx_id: "345332", applicant_kind: "user and/or family", request_kind: "request-kind",
                                                     motivation_kind: "motivation-kind", us_state: "DC", is_ridp_verified: true, assistance_year: TimeKeeper.date_of_record.year, aasm_state: "draft",
