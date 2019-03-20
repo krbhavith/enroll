@@ -122,18 +122,33 @@ RSpec.describe FinancialAssistance::Application, type: :model do
       end
     end
 
-    context "is_reviewable?" do
+    context 'is_reviewable?' do
       let(:faa) { double(:application) }
-      it 'should return true if in valid reviewable states' do
-        allow(application).to receive(:aasm_state).and_return('submitted')
-        expect(application.is_reviewable?).to eq true
+      context 'when submitted' do
+        it 'should return true' do
+          allow(application).to receive(:aasm_state).and_return('submitted')
+          expect(application.is_reviewable?).to eq true
+        end
       end
 
-      it 'should return false if in valid reviewable states' do
+      context 'when determination_response_error' do
+        it 'should return true' do
+          allow(application).to receive(:aasm_state).and_return('determination_response_error')
+          expect(application.is_reviewable?).to eq true
+        end
+      end
+
+      context 'when determined' do
+        it 'should return true' do
+          allow(application).to receive(:aasm_state).and_return('determined')
+          expect(application.is_reviewable?).to eq true
+        end
+      end
+
+      it 'should return false if the application is in draft state' do
         allow(application).to receive(:aasm_state).and_return('draft')
         expect(application.is_reviewable?).to eq false
       end
-
     end
 
     context "check the validity of an application" do
